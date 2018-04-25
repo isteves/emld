@@ -1,13 +1,18 @@
+
 #' @importFrom xml2 xml_add_child xml_set_attr xml_new_document
 #' @importFrom xml2 xml_set_namespace xml_root xml_find_first
-as_eml_document <- function(x, root = "eml", ns ="eml") {
+as_eml_document <- function(x, root = "eml",
+                            ns = "eml"
+                            ) {
   doc <- xml2::xml_new_document()
   add_node(x, doc, root)
   xml2::xml_set_namespace(xml2::xml_root(doc), ns)
   doc
 }
 
-
+default_ns <- c("xmlns:eml" = "eml://ecoinformatics.org/eml-2.1.1",
+                "xmlns:xsi" = "http://www.w3.org/2001/XMLSchema-instance",
+                "xmlns:stmml" = "http://www.xml-cml.org/schema/stmml-1.1")
 
 add_node <- function(x, parent, tag) {
     if (is.atomic(x)) {
@@ -23,6 +28,9 @@ add_node <- function(x, parent, tag) {
     ## unwrap group_by_key sets
     if(!is.null(names(x)) & length(x) > 0){
       parent <- xml2::xml_add_child(parent, tag)
+
+      ## Create the default namespaces so that we correctly identify these later
+      if(tag == "eml"){ xml_set_attrs(parent, default_ns) }
     }
 
     ## Handle text-type explicitly, parsing back into XML
@@ -58,6 +66,7 @@ add_node <- function(x, parent, tag) {
       add_node(x[[i]], parent, next_tag) # does nothing if x[[i]] is atomic
     }
 }
+
 
 serialize_atomics <- function(x, parent, tag, key){
 
